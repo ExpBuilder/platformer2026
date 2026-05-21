@@ -200,12 +200,16 @@ public class Level {
 		Tile[][] t = map.getTiles();
 
 		int actualFullness = fullness;
-		
-		if (fullness == 0 && row - 1 >= 0 && (t[col][row-1] instanceof SolidTile)) {
-			actualFullness = 1;
+
+		if (actualFullness == 0 && row + 1 < t[0].length && (t[col][row+1] instanceof SolidTile)) {
+			actualFullness = 3;
 		}
 
-		Water w = new Water(col, row, tileSize, tileset.getImage("Full_water"), this, actualFullness);
+		if (!(actualFullness > 3 || actualFullness < 0)) {
+
+		String[] waterTypes = {"Falling_water", "Quarter_water", "Half_water", "Full_water"};
+
+		Water w = new Water(col, row, tileSize, tileset.getImage(waterTypes[actualFullness]), this, actualFullness);
 		
 		map.addTile(col, row, w);
 
@@ -213,21 +217,22 @@ public class Level {
 		if (row + 1 < t[0].length && !(t[col][row+1] instanceof SolidTile)) { // Down
 			water(col, row + 1, map, 0);
 
-		} else {
-			if (actualFullness == 1) actualFullness++;
+		} else { // Left & Right (too lazy to determine which of the following is left and which is right)
+			if (actualFullness == 1) actualFullness = 2;
 
-			if (col - 1 >= 0) { // Left
+			if (col - 1 >= 0) {
 				if (!(t[col - 1][row] instanceof SolidTile) && !(t[col - 1][row] instanceof Water)) {
 					water(col - 1, row, map, actualFullness - 1);
 				}
 			}
 
-			if (col + 1 < t.length) { // Right
+			if (col + 1 < t.length) {
 				if (!(t[col + 1][row] instanceof SolidTile) && !(t[col + 1][row] instanceof Water)) {
 					water(col + 1, row, map, actualFullness - 1);
 				}
-				System.out.println("right");
 			}
+		}
+
 		}
 	}
 
