@@ -194,10 +194,8 @@ public class Level {
 	
 	//Adds gas tiles until the requisite number of squares are filled or there is no more room 
 	private void addGas(int col, int row, Map map, int numSquaresToFill, ArrayList<Gas> placedThisRound) {
-		int placed = 1;
-
-		final int[] vOffset = {-1, -1, -1, 0, 0, 1, 1};
-		final int[] hOffset = {0, -1 , 1, -1, 1, 0, -1 , 1};
+		final int[] vOffset = {-1 , -1, -1, 0, 0, 1, 1, 1};
+		final int[] hOffset = {0, -1, 1, -1, 1, 0, -1 , 1};
 
 		Tile[][] tiles = map.getTiles();
 
@@ -206,16 +204,14 @@ public class Level {
 		placedThisRound.add(g1);
 
 		int j = 0;
-		int debug = 0;
-		while (placed < numSquaresToFill) {
+		while (placedThisRound.size() < numSquaresToFill) {
+			if (j == placedThisRound.size()) break;
 
-			for (int i = 0; i < 7; i++) {
-				if (placed >= numSquaresToFill) break;
-				
-				int thisCol = (placedThisRound.get(j)).getCol() + vOffset[i];
-				int thisRow = (placedThisRound.get(j)).getRow() + hOffset[i];
-
-				System.out.println(thisCol + ", " + thisRow);
+			for (int i = 0; i < 8; i++) {
+				if (placedThisRound.size() >= numSquaresToFill) break;
+      				   
+				int thisCol = (placedThisRound.get(j)).getCol() + hOffset[i];
+				int thisRow = (placedThisRound.get(j)).getRow() + vOffset[i];
 
 				Tile t = tiles[thisCol][thisRow];
 
@@ -223,15 +219,10 @@ public class Level {
 					Gas g2 = new Gas(thisCol, thisRow, tileSize, tileset.getImage("GasOne"), this, 1);
 					map.addTile(thisCol, thisRow, g2);
 					placedThisRound.add(g2);
-
-					placed++;
 				}
 			}
 
 			j++;
-			debug++;
-
-			if (debug > 15) break;
 		}
 	}	
 

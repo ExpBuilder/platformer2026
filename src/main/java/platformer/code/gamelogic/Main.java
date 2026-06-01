@@ -19,7 +19,7 @@ public class Main extends GameBase implements PlayerDieListener, PlayerWinListen
 	public static final int SCREEN_WIDTH = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth()-200;
 	public static final int SCREEN_HEIGHT = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight()-200;
 	public static final boolean DEBUGGING = false;
-
+ 
 	private ScreenTransition screenTransition = new ScreenTransition();
 
 	private LevelData[] levels;
@@ -46,7 +46,7 @@ public class Main extends GameBase implements PlayerDieListener, PlayerWinListen
 
 		levels = new LevelData[2];
 		try {
-			levels[0] = LeveldataLoader.loadLeveldata("src/main/java/platformer/maps/map1.txt");
+			levels[0] = LeveldataLoader.loadLeveldata("src/main/java/platformer/maps/gasTest1.txt");
 			levels[1] = LeveldataLoader.loadLeveldata("src/main/java/platformer/maps/map1.txt");
 		} catch (Exception e) {
 			e.printStackTrace();
