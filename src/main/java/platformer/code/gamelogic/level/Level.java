@@ -118,8 +118,10 @@ public class Level {
 					tiles[x][y] = new Water(xPosition, yPosition, tileSize, tileset.getImage("Half_water"), this, 2);
 				else if (values[x][y] == 21)
 					tiles[x][y] = new Water(xPosition, yPosition, tileSize, tileset.getImage("Quarter_water"), this, 1);
-			}
-
+				else if (values[x][y] == 22) // Temp
+					tiles[x][y] = new SolidTile(xPosition, yPosition, tileSize, tileset.getImage("Solid_middle"), this);
+				
+			} 
 		}
 		enemies = new Enemy[enemiesList.size()];
 		map = new Map(width, height, tileSize, tiles);
