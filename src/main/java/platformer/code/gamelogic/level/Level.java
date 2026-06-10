@@ -18,6 +18,7 @@ import platformer.code.gamelogic.tiles.Flower;
 import platformer.code.gamelogic.tiles.Gas;
 import platformer.code.gamelogic.tiles.SolidTile;
 import platformer.code.gamelogic.tiles.Spikes;
+import platformer.code.gamelogic.tiles.Star;
 import platformer.code.gamelogic.tiles.Tile;
 import platformer.code.gamelogic.tiles.Water;
 
@@ -35,6 +36,9 @@ public class Level {
 
 	private ArrayList<Enemy> enemiesList = new ArrayList<>();
 	private ArrayList<Flower> flowers = new ArrayList<>();
+	private ArrayList<Water> waterList = new ArrayList<>();
+	private ArrayList<Gas> gasList = new ArrayList<>();
+	private ArrayList<Star> starList = new ArrayList<>();
 
 	private List<PlayerDieListener> dieListeners = new ArrayList<>();
 	private List<PlayerWinListener> winListeners = new ArrayList<>();
@@ -45,6 +49,9 @@ public class Level {
 	private int tileSize;
 	private Tileset tileset;
 	public static float GRAVITY = 70;
+
+	private double gasTimer = 0.0;
+	private double maxGasTime = 5.0;
 
 	public Level(LevelData leveldata) {
 		this.leveldata = leveldata;
@@ -118,8 +125,10 @@ public class Level {
 					tiles[x][y] = new Water(xPosition, yPosition, tileSize, tileset.getImage("Half_water"), this, 2);
 				else if (values[x][y] == 21)
 					tiles[x][y] = new Water(xPosition, yPosition, tileSize, tileset.getImage("Quarter_water"), this, 1);
-				else if (values[x][y] == 22) // Temp
-					tiles[x][y] = new SolidTile(xPosition, yPosition, tileSize, tileset.getImage("Solid_middle"), this);
+				else if (values[x][y] == 22) {
+					tiles[x][y] = new Star(xPosition, yPosition, tileSize, tileset.getImage("Star"), this);
+					starList.add((Star) tiles[x][y]);
+				}
 				
 			} 
 		}
@@ -139,6 +148,14 @@ public class Level {
 	}
 
 	public void onPlayerDeath() {
+		while (waterList.size() != 0) {
+			waterList.remove(0);
+		}
+		while (gasList.size() != 0) {
+			gasList.remove(0);
+		}
+
+
 		active = false;
 		playerDead = true;
 		throwPlayerDieEvent();
@@ -152,19 +169,50 @@ public class Level {
 
 	public void update(float tslf) {
 		if (active) {
+			// Water 
+			boolean touchingWater = false;
+			for (int i = 0; i < waterList.size(); i++) {
+				if (waterList.get(i).getHitbox().isIntersecting(player.getHitbox())) {
+					touchingWater = true;
+				}
+			}
+
+			// Gas
+			boolean touchingGas = false;
+			for (int i = 0; i < gasList.size(); i++) {
+				if (gasList.get(i).getHitbox().isIntersecting(player.getHitbox())) {
+					touchingGas = true;
+				}
+			}
+			if (touchingGas) {
+				gasTimer += tslf;
+
+				if (gasTimer > maxGasTime) onPlayerDeath();
+			} else {
+				gasTimer = 0.0;
+			}
+
+			// Star
+			boolean touchingStar = false;
+			for (int i = 0; i < starList.size(); i++) {
+				if (starList.get(i).getHitbox().isIntersecting(player.getHitbox())) {
+					touchingStar = true;
+				}
+			}
+
 			// Update the player
-			player.update(tslf);
+			player.update(tslf, touchingWater, touchingStar);
 
 			// Player death
 			if (map.getFullHeight() + 100 < player.getY())
 				onPlayerDeath();
-			if (player.getCollisionMatrix()[PhysicsObject.BOT] instanceof Spikes)
+			else if (player.getCollisionMatrix()[PhysicsObject.BOT] instanceof Spikes)
 				onPlayerDeath();
-			if (player.getCollisionMatrix()[PhysicsObject.TOP] instanceof Spikes)
+			else if (player.getCollisionMatrix()[PhysicsObject.TOP] instanceof Spikes)
 				onPlayerDeath();
-			if (player.getCollisionMatrix()[PhysicsObject.LEF] instanceof Spikes)
+			else if (player.getCollisionMatrix()[PhysicsObject.LEF] instanceof Spikes)
 				onPlayerDeath();
-			if (player.getCollisionMatrix()[PhysicsObject.RIG] instanceof Spikes)
+			else if (player.getCollisionMatrix()[PhysicsObject.RIG] instanceof Spikes)
 				onPlayerDeath();
 
 			for (int i = 0; i < flowers.size(); i++) {
@@ -177,6 +225,9 @@ public class Level {
 					i--;
 				}
 			}
+
+			
+
 
 			// Update the enemies
 			for (int i = 0; i < enemies.length; i++) {
@@ -204,6 +255,7 @@ public class Level {
 		Gas g1 = new Gas(col, row, tileSize, tileset.getImage("GasOne"), this, 1);
 		map.addTile(col, row, g1);
 		placedThisRound.add(g1);
+		gasList.add(g1);
 
 		int j = 0;
 		while (placedThisRound.size() < numSquaresToFill) {
@@ -217,10 +269,11 @@ public class Level {
 
 				Tile t = tiles[thisCol][thisRow];
 
-				if (!(t instanceof Gas || t instanceof Water || t instanceof SolidTile || t instanceof Spikes)) {
+				if (!(t instanceof Gas || t instanceof Water || t instanceof SolidTile || t instanceof Spikes || t instanceof Star)) {
 					Gas g2 = new Gas(thisCol, thisRow, tileSize, tileset.getImage("GasOne"), this, 1);
 					map.addTile(thisCol, thisRow, g2);
 					placedThisRound.add(g2);
+					gasList.add(g2);
 				}
 			}
 
@@ -248,6 +301,7 @@ public class Level {
 		Water w = new Water(col, row, tileSize, tileset.getImage(waterTypes[actualFullness]), this, actualFullness);
 		
 		map.addTile(col, row, w);
+		waterList.add(w);
 
 		
 		if (row + 1 < t[0].length && !(t[col][row+1] instanceof SolidTile)) { // Down
@@ -322,7 +376,7 @@ public class Level {
 
 
 	   	 // Draw the player
-	   	 player.draw(g);
+	   	 player.draw(g, gasTimer, maxGasTime);
 
 
 

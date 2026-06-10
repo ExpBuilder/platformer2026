@@ -23,8 +23,8 @@ public class Player extends PhysicsObject{
 		this.hitbox = new RectHitbox(this, offset,offset, width -offset, height - offset);
 	}
 
-	@Override
-	public void update(float tslf) {
+	//@Override
+	public void update(float tslf, boolean touchingWater, boolean touchingStar) {
 		super.update(tslf);
 		
 		movementVector.x = 0;
@@ -34,18 +34,45 @@ public class Player extends PhysicsObject{
 		if(PlayerInput.isRightKeyDown()) {
 			movementVector.x = +walkSpeed;
 		}
-		if(PlayerInput.isJumpKeyDown() && !isJumping) {
-			movementVector.y = -jumpPower;
-			isJumping = true;
+		if(PlayerInput.isJumpKeyDown() && (!isJumping || touchingWater || touchingStar)) {
+			if (touchingWater) {
+				movementVector.y = -jumpPower;
+				isJumping = true;
+				
+			} else if (touchingStar) {
+				movementVector.y = -2 * jumpPower;
+				isJumping = true;
+			} else {
+				movementVector.y = -jumpPower;
+				isJumping = true;
+			}
+			
 		}
 		
 		isJumping = true;
 		if(collisionMatrix[BOT] != null) isJumping = false;
+
+		if (touchingWater) {
+			movementVector.y /= 1.5;
+			movementVector.y -= 200;
+			
+		}
 	}
 
-	@Override
-	public void draw(Graphics g) {
-		g.setColor(Color.YELLOW);
+	
+	public void draw(Graphics g, double timeInGas, double maxTime) {
+		double percentage = timeInGas / maxTime * 100.0;
+
+		Color c = new Color(255, 255, 0);
+
+		for (int i = 1; i < 6; i++) {
+			if (percentage > 20 * i) {
+				c = c.darker();
+			}
+		}
+		g.setColor(c);
+
+	
 		MyGraphics.fillRectWithOutline(g, (int)getX(), (int)getY(), width, height);
 		
 		if(Main.DEBUGGING) {
@@ -60,4 +87,5 @@ public class Player extends PhysicsObject{
 		
 		hitbox.draw(g);
 	}
+
 }
