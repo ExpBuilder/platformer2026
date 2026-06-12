@@ -20,7 +20,7 @@ public class Enemy extends PhysicsObject{
 		this.image = GameResources.enemy;
 	}
 	
-	public void update(float tslf /*, boolean touchingWater */) {
+	public void update(float tslf, boolean touchingWater) {
 		super.update(tslf);
 		
 		if(collisionMatrix[LEF] != null) {
@@ -29,11 +29,10 @@ public class Enemy extends PhysicsObject{
 			movementVector.x = -walkSpeed;
 		}
 
-		/*if (touchingWater) {
+		if (touchingWater) {
 			movementVector.y /= 1.5;
 			movementVector.y -= 200;
-			
-		}*/
+		}
 	}
 	
 	@Override

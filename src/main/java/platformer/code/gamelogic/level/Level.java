@@ -26,7 +26,6 @@ public class Level {
 
 	private LevelData leveldata;
 	private Map map;
-	private Enemy[] enemies;
 	public static Player player;
 	private Camera camera;
 
@@ -132,12 +131,8 @@ public class Level {
 				
 			} 
 		}
-		enemies = new Enemy[enemiesList.size()];
 		map = new Map(width, height, tileSize, tiles);
 		camera = new Camera(Main.SCREEN_WIDTH, Main.SCREEN_HEIGHT, 0, map.getFullWidth(), map.getFullHeight());
-		for (int i = 0; i < enemiesList.size(); i++) {
-			enemies[i] = new Enemy(enemiesList.get(i).getX(), enemiesList.get(i).getY(), this);
-		}
 		player = new Player(leveldata.getPlayerX() * map.getTileSize(), leveldata.getPlayerY() * map.getTileSize(),
 				this);
 		camera.setFocusedObject(player);
@@ -153,6 +148,9 @@ public class Level {
 		}
 		while (gasList.size() != 0) {
 			gasList.remove(0);
+		}
+		while (enemiesList.size() != 0) {
+			enemiesList.remove(0);
 		}
 
 
@@ -230,11 +228,36 @@ public class Level {
 
 
 			// Update the enemies
-			for (int i = 0; i < enemies.length; i++) {
-				enemies[i].update(tslf);
-				if (player.getHitbox().isIntersecting(enemies[i].getHitbox())) {
-					onPlayerDeath();
+			for (int i = 0; i < enemiesList.size(); i++) {
+				try {
+					Enemy e = enemiesList.get(i);
+
+					// Touching water
+					boolean touchingW = false;
+					for (int j = 0; j < waterList.size(); j++) {
+						if (waterList.get(j).getHitbox().isIntersecting(e.getHitbox())) {
+							touchingW = true;
+						}
+					}
+
+					// Update enemy
+					enemiesList.get(i).update(tslf, touchingW);
+
+					// Player death
+					if (player.getHitbox().isIntersecting(enemiesList.get(i).getHitbox())) {
+						onPlayerDeath();
+					}
+
+					// Enemy falls out of map
+					if (map.getFullHeight() + 100 < enemiesList.get(i).getY()){
+						enemiesList.remove(i);
+						i--;
+					}
+				} catch (IndexOutOfBoundsException e) {
+					System.out.println("Out of bounds exception. ");
+					System.out.println("This was caused by enemiesList being cleared due to player death before this code was executed");
 				}
+				
 			}
 
 			// Update the map
@@ -370,10 +393,10 @@ public class Level {
 
 
 	   	 // Draw the enemies
-	   	 for (int i = 0; i < enemies.length; i++) {
-	   		 enemies[i].draw(g);
+	   	 for (int i = 0; i < enemiesList.size(); i++) {
+	   		 enemiesList.get(i).draw(g);
 	   	 }
-
+ 
 
 	   	 // Draw the player
 	   	 player.draw(g, gasTimer, maxGasTime);
